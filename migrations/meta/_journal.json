@@ -8,6 +8,13 @@
       "when": 1754238760180,
       "tag": "0000_sad_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1754241085968,
+      "tag": "0001_daily_stryfe",
+      "breakpoints": true
     }
   ]
 }
