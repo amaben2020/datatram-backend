@@ -52,7 +52,7 @@ export class WebhookController {
     console.log(type);
 
     switch (type) {
-      case 'user.created':
+      case 'email.created':
         await this.clerkWebHookService.handleUserCreated(data);
         break;
       case 'user.updated':
