@@ -5,7 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 // import { AuthGuard } from './common/auth/auth.guard';
 // import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClerkService } from './common/auth/clerk/clerk.service';
 import { DrizzlePostgresModule } from '@knaadh/nestjs-drizzle-postgres';
 import { schema } from './db/schema';
@@ -20,18 +20,31 @@ import { UsersModule } from './users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
 
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    DrizzlePostgresModule.register({
+
+    DrizzlePostgresModule.registerAsync({
       tag: 'DB_DEV',
-      postgres: {
-        url: 'postgresql://neondb_owner:npg_dfycan9Q1xbt@ep-tiny-violet-advkhk4b-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+      useFactory: (config: ConfigService) => {
+        const dbUrl = config.get<string>('DATABASE_URL');
+
+        if (!dbUrl) {
+          throw new Error('DATABASE_URL is not defined in environment');
+        }
+
+        return {
+          postgres: {
+            url: dbUrl,
+          },
+          config: { schema: { ...schema } },
+        };
       },
-      config: { schema: { ...schema } },
+      inject: [ConfigService],
     }),
     SourcesModule,
     DestinationsModule,
