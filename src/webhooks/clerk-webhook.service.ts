@@ -7,11 +7,13 @@ export class ClerkWebhookService {
   constructor(private readonly usersService: UsersService) {}
   async handleUserCreated(userData: any) {
     try {
-      console.log('Creating user:', userData);
+      console.log('Creating user ===>:', userData);
 
       await this.usersService.createFromClerk({
         clerkId: userData.id,
-        email: userData.email_addresses[0]?.email_address,
+        email: Array.isArray(userData.email_addresses)
+          ? userData.email_addresses[0]?.email_address
+          : '',
         firstName: userData.first_name,
         lastName: userData.last_name,
         imageUrl: userData.image_url,

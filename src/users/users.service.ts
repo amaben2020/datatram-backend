@@ -11,12 +11,15 @@ export class UsersService {
     @InjectDrizzle('DB_DEV') private db: NodePgDatabase<typeof schema>,
   ) {}
   async createFromClerk(userData: CreateUserFromClerkDto) {
+    console.log('CREATING USER', userData);
     // Check if user already exists
     const existingUser = await this.findByClerkId(userData.clerkId);
     if (existingUser) {
       console.log('User already exists:', userData.clerkId);
       return existingUser;
     }
+
+    console.log('existingUser', existingUser);
 
     const [user] = await this.db
       .insert(users)
