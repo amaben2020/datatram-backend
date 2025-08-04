@@ -26,6 +26,8 @@ export class WebhookController {
     const webhookSecret =
       this.configService.get<string>('CLERK_WEBHOOK_SECRET') || '';
 
+    console.log('webhookSecret', webhookSecret);
+
     if (!webhookSecret) {
       throw new BadRequestException('Missing webhook secret');
     }
