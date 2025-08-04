@@ -2,27 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { InjectDrizzle } from '@knaadh/nestjs-drizzle-postgres';
 import { Injectable } from '@nestjs/common';
-
-// import { schema } from 'src/db/schema';
-
-// @Injectable()
-// export class SourcesService {
-//   constructor(@InjectDrizzle('DB_DEV') private db: typeof schema) {}
-//   getHello() {
-//     const data = this.db.users.name;
-
-//     return data;
-//   }
-// }
-
-// src/sources/sources.service.ts
 import { NotFoundException } from '@nestjs/common';
 import { StorageService } from '../storage/storage.service';
-// import { sources } from '../schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { CreateSourceDto, UpdateSourceDto } from './dto/create-source';
-import { schema, sources } from 'src/db/schema';
-// import { DB } from '../db/db.service';
+import { schema, sources, users } from 'src/db/schema';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class SourcesService {
@@ -32,16 +17,37 @@ export class SourcesService {
     private readonly storageService: StorageService,
   ) {}
 
-  async findAll(userId: number) {
-    return this.db.select().from(sources).where(eq(sources.userId, userId));
+  async getUserByUserId(clerkId: string) {
+    const userId = await this.db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+    return userId?.id;
   }
 
-  async findOne(id: number, userId: number) {
+  async findAll(clerkId: string) {
+    console.log('USER ID', clerkId);
+    const userId = await this.getUserByUserId(clerkId);
+
+    console.log('USER ID FIND ALL', userId);
+
+    if (!userId) throw NotFoundError('User not found');
+
+    const sourcesData = await this.db
+      .select()
+      .from(sources)
+      .where(eq(sources.userId, Number(userId)));
+
+    return sourcesData;
+  }
+
+  async findOne(id: number, clerkId: string) {
+    const userId = await this.getUserByUserId(clerkId);
+    // TODO: Use join to restrict to only user id for specific user
     const [source] = await this.db
       .select()
       .from(sources)
-      .where(eq(sources.id, id))
-      .where(eq(sources.userId, userId));
+      .where(eq(sources.id, id));
+    // .where(eq(sources.userId, userId));
 
     if (!source) {
       throw new NotFoundException('Source not found');
