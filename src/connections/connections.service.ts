@@ -44,6 +44,7 @@ export class ConnectionsService {
         destinationId: connections.destinationId,
         sourceName: sources.name,
         destinationName: destinations.name,
+        url: destinations.url,
       })
       .from(connections)
       .leftJoin(sources, eq(connections.sourceId, sources.id))
