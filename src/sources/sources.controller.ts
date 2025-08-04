@@ -101,7 +101,7 @@ export class SourcesController {
   )
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateSourceDto: UpdateSourceDto,
+    @Body() updateSourceDto: any,
     @UploadedFiles()
     files: { file?: Express.Multer.File[]; image?: Express.Multer.File[] },
     @Request() req: any, // Replace with proper auth guard
@@ -111,7 +111,7 @@ export class SourcesController {
     return this.sourcesService.update(
       id,
       updateSourceDto,
-      userId,
+      clerkId,
       files?.file?.[0],
       files?.image?.[0],
     );
@@ -120,6 +120,6 @@ export class SourcesController {
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     const clerkId = req.user?.id || req.user?.sub;
-    return this.sourcesService.remove(id, userId);
+    return this.sourcesService.remove(id, clerkId);
   }
 }

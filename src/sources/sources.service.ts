@@ -101,6 +101,8 @@ export class SourcesService {
   ) {
     const existing = await this.findOne(id, clerkId);
 
+    console.log('existing', existing);
+
     let fileUrl = existing.file;
     let imageUrl = existing.image;
 
@@ -118,7 +120,7 @@ export class SourcesService {
       imageUrl = await this.storageService.storeFile(image);
     }
 
-    const [source] = await this.db
+    const [source = undefined] = await this.db
       .update(sources)
       .set({
         ...updateSourceDto,
@@ -126,8 +128,7 @@ export class SourcesService {
         image: imageUrl,
         updatedAt: new Date(),
       })
-      .where(eq(sources.id, id))
-      .where(eq(sources.userId, userId))
+      .where(and(eq(sources.id, id), eq(sources.userId, existing?.userId)))
       .returning();
 
     return source;
@@ -144,10 +145,8 @@ export class SourcesService {
       this.storageService.deleteFile(existing.image);
     }
 
-    await this.db
-      .delete(sources)
-      .where(eq(sources.id, id))
-      .where(eq(sources.userId, userId));
+    await this.db.delete(sources).where(eq(sources.id, id));
+    // .where(eq(sources.userId, userId));
 
     return { success: true };
   }
