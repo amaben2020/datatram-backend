@@ -22,6 +22,7 @@ export class ClerkWebhookService {
     } catch (error) {
       console.error('Error creating user:', error);
       // Don't throw here - we don't want to break the webhook
+      throw error;
     }
   }
 

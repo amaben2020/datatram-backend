@@ -23,50 +23,65 @@ export class WebhookController {
     @Headers('svix-timestamp') svixTimestamp: string,
     @Headers('svix-signature') svixSignature: string,
   ) {
-    const webhookSecret =
-      this.configService.get<string>('CLERK_WEBHOOK_SECRET') || '';
-
-    console.log('webhookSecret', webhookSecret);
-
-    if (!webhookSecret) {
-      throw new BadRequestException('Missing webhook secret');
-    }
-
-    // Verify the webhook
-    const wh = new Webhook(webhookSecret);
-    let evt: any;
-
     try {
-      evt = wh.verify(JSON.stringify(body), {
-        'svix-id': svixId,
-        'svix-timestamp': svixTimestamp,
-        'svix-signature': svixSignature,
-      });
+      const webhookSecret =
+        this.configService.get<string>('CLERK_WEBHOOK_SECRET') || '';
+
+      console.log('webhookSecret', webhookSecret);
+
+      if (!webhookSecret) {
+        throw new BadRequestException('Missing webhook secret');
+      }
+
+      // Verify the webhook
+      const wh = new Webhook(webhookSecret);
+      let evt: any;
+
+      try {
+        evt = wh.verify(JSON.stringify(body), {
+          'svix-id': svixId,
+          'svix-timestamp': svixTimestamp,
+          'svix-signature': svixSignature,
+        });
+      } catch (err) {
+        console.log('Error verifying webhook:', err);
+        throw new BadRequestException('Invalid webhook signature');
+      }
+
+      // Handle different event types
+      const { type, data } = evt;
+
+      console.log('DATA FROM CLERK WEBHOOK', data);
+      console.log(type);
+
+      console.log('Full webhook data:', JSON.stringify(data, null, 2));
+
+      switch (type) {
+        case 'user.created':
+          console.log('Attempting to handle user.created', type);
+          await this.clerkWebHookService.handleUserCreated(data);
+          console.log('Finished handling user.created');
+          break;
+        case 'user.updated':
+          await this.clerkWebHookService.handleUserUpdated(data);
+          break;
+        case 'user.deleted':
+          await this.clerkWebHookService.handleUserDeleted(data);
+          break;
+        default:
+          console.log(`Unhandled webhook type: ${type}`);
+      }
+
+      return { success: true };
     } catch (err) {
-      console.log('Error verifying webhook:', err);
-      throw new BadRequestException('Invalid webhook signature');
+      console.error('Webhook processing error:', {
+        error: err.message,
+        stack: err.stack,
+        body: JSON.stringify(body, null, 2),
+      });
+      throw new BadRequestException(
+        `Webhook processing failed: ${err.message}`,
+      );
     }
-
-    // Handle different event types
-    const { type, data } = evt;
-
-    console.log('DATA FROM CLERK WEBHOOK', data);
-    console.log(type);
-
-    switch (type) {
-      case 'user.created':
-        await this.clerkWebHookService.handleUserCreated(data);
-        break;
-      case 'user.updated':
-        await this.clerkWebHookService.handleUserUpdated(data);
-        break;
-      case 'user.deleted':
-        await this.clerkWebHookService.handleUserDeleted(data);
-        break;
-      default:
-        console.log(`Unhandled webhook type: ${type}`);
-    }
-
-    return { success: true };
   }
 }
