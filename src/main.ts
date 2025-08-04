@@ -11,6 +11,8 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+
+      skipMissingProperties: true, // Ignore missing fields in GET
     }),
   );
 

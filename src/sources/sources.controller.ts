@@ -24,7 +24,7 @@ import {
 } from 'src/common/interceptors/logging.interceptors';
 import { ClerkAuthGuard } from 'src/common/auth/clerk-auth.guard';
 
-// @UseInterceptors(LoggingInterceptor, ResponseWrapperInterceptor)
+@UseInterceptors(LoggingInterceptor, ResponseWrapperInterceptor)
 @UseGuards(ClerkAuthGuard)
 @Controller('sources')
 export class SourcesController {

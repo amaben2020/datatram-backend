@@ -1,11 +1,38 @@
 // src/destinations/dto/create-destination.dto.ts
+import { IsOptional, IsString, IsObject, IsNotEmpty } from 'class-validator';
+
 export class CreateDestinationDto {
+  @IsNotEmpty()
+  @IsString()
   name: string;
-  projectId: string;
+
+  @IsOptional()
+  @IsString()
+  projectId?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsObject()
   metadata?: Record<string, any>;
 }
 
-// src/destinations/dto/update-destination.dto.ts
-export class UpdateDestinationDto extends CreateDestinationDto {
-  // You can add specific update fields if needed
+export class UpdateDestinationDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  projectId?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, any>;
 }
