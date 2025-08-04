@@ -58,7 +58,7 @@ export class SourcesService {
 
   async create(
     createSourceDto: CreateSourceDto,
-    userId: number,
+    clerkId: string,
     file?: Express.Multer.File,
     image?: Express.Multer.File,
   ) {
@@ -73,6 +73,8 @@ export class SourcesService {
     if (image) {
       imageUrl = await this.storageService.storeFile(image);
     }
+
+    const userId = await this.getUserByUserId(clerkId);
 
     console.log('fileUrl', fileUrl);
     console.log('fileUrl', imageUrl);
@@ -93,11 +95,11 @@ export class SourcesService {
   async update(
     id: number,
     updateSourceDto: UpdateSourceDto,
-    userId: number,
+    clerkId: string,
     file?: Express.Multer.File,
     image?: Express.Multer.File,
   ) {
-    const existing = await this.findOne(id, userId);
+    const existing = await this.findOne(id, clerkId);
 
     let fileUrl = existing.file;
     let imageUrl = existing.image;

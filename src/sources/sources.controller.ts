@@ -54,6 +54,7 @@ export class SourcesController {
     return this.sourcesService.findOne(8, userId);
   }
 
+  @UseGuards(ClerkAuthGuard)
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -91,34 +92,34 @@ export class SourcesController {
     );
   }
 
-  // @Patch(':id')
-  // @UseInterceptors(
-  //   FileFieldsInterceptor([
-  //     { name: 'file', maxCount: 1 },
-  //     { name: 'image', maxCount: 1 },
-  //   ]),
-  // )
-  // async update(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() updateSourceDto: UpdateSourceDto,
-  //   @UploadedFiles()
-  //   files: { file?: Express.Multer.File[]; image?: Express.Multer.File[] },
-  //   @Request() req: any, // Replace with proper auth guard
-  // ) {
-  //   const userId = req.user?.id || 1; // Get from authenticated user
+  @Patch(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'file', maxCount: 1 },
+      { name: 'image', maxCount: 1 },
+    ]),
+  )
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateSourceDto: UpdateSourceDto,
+    @UploadedFiles()
+    files: { file?: Express.Multer.File[]; image?: Express.Multer.File[] },
+    @Request() req: any, // Replace with proper auth guard
+  ) {
+    const clerkId = req.user?.id || req.user?.sub;
 
-  //   return this.sourcesService.update(
-  //     id,
-  //     updateSourceDto,
-  //     userId,
-  //     files?.file?.[0],
-  //     files?.image?.[0],
-  //   );
-  // }
+    return this.sourcesService.update(
+      id,
+      updateSourceDto,
+      userId,
+      files?.file?.[0],
+      files?.image?.[0],
+    );
+  }
 
-  // @Delete(':id')
-  // async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-  //   const userId = req.user?.id || req.user?.sub;
-  //   return this.sourcesService.remove(id, userId);
-  // }
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const clerkId = req.user?.id || req.user?.sub;
+    return this.sourcesService.remove(id, userId);
+  }
 }
