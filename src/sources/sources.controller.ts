@@ -51,7 +51,7 @@ export class SourcesController {
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     const userId = req.user?.id || req.user?.sub;
     console.log('userId', userId);
-    return this.sourcesService.findOne(8, userId);
+    return this.sourcesService.findOne(id, userId);
   }
 
   @UseGuards(ClerkAuthGuard)

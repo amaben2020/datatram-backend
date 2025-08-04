@@ -8,19 +8,17 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
-  UploadedFiles,
   ParseIntPipe,
   Request,
   UseGuards,
   BadRequestException,
+  UseInterceptors,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { DestinationsService } from './destinations.service';
+import { ConnectionsService } from './connections.service';
 import {
-  CreateDestinationDto,
-  UpdateDestinationDto,
-} from './dto/create-destination.dto';
+  CreateConnectionDto,
+  UpdateConnectionDto,
+} from './dto/create-connection.dto';
 import {
   LoggingInterceptor,
   ResponseWrapperInterceptor,
@@ -29,9 +27,9 @@ import { ClerkAuthGuard } from 'src/common/auth/clerk-auth.guard';
 
 @UseInterceptors(LoggingInterceptor, ResponseWrapperInterceptor)
 @UseGuards(ClerkAuthGuard)
-@Controller('destinations')
-export class DestinationsController {
-  constructor(private readonly destinationsService: DestinationsService) {}
+@Controller('connections')
+export class ConnectionsController {
+  constructor(private readonly connectionsService: ConnectionsService) {}
 
   @Get('/all')
   async findAll(@Request() req: any) {
@@ -40,7 +38,7 @@ export class DestinationsController {
     console.log(clerkId);
 
     try {
-      const data = await this.destinationsService.findAll(clerkId);
+      const data = await this.connectionsService.findAll(clerkId);
 
       console.log('CALLED ===>', data);
 
@@ -54,25 +52,17 @@ export class DestinationsController {
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     const userId = req.user?.id || req.user?.sub;
     console.log('userId', userId);
-    return this.destinationsService.findOne(id, userId);
+    return this.connectionsService.findOne(id, userId);
   }
 
   @UseGuards(ClerkAuthGuard)
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
   async create(
-    @Body() createDestinationDto: any,
-    @UploadedFiles()
-    files: { image?: Express.Multer.File[] },
+    @Body() createConnectionDto: CreateConnectionDto,
     @Request() req: any,
   ) {
     console.log('req ====>', req?.user);
-    console.log('FILES RECEIVED ===>', files);
-
-    // Extract individual files from the arrays
-    const imageUpload = files?.image?.[0];
-
-    console.log('IMAGE ===>', imageUpload?.originalname, imageUpload?.mimetype);
+    console.log('CREATE CONNECTION DTO ===>', createConnectionDto);
 
     const userId = req.user?.id || req.user?.sub;
 
@@ -80,35 +70,23 @@ export class DestinationsController {
       throw new BadRequestException('User authentication required');
     }
 
-    return this.destinationsService.create(
-      createDestinationDto,
-      userId,
-      imageUpload,
-    );
+    return this.connectionsService.create(createConnectionDto, userId);
   }
 
   @Patch(':id')
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDestinationDto: any,
-    @UploadedFiles()
-    files: { image?: Express.Multer.File[] },
-    @Request() req: any, // Replace with proper auth guard
+    @Body() updateConnectionDto: UpdateConnectionDto,
+    @Request() req: any,
   ) {
     const clerkId = req.user?.id || req.user?.sub;
 
-    return this.destinationsService.update(
-      id,
-      updateDestinationDto,
-      clerkId,
-      files?.image?.[0],
-    );
+    return this.connectionsService.update(id, updateConnectionDto, clerkId);
   }
 
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     const clerkId = req.user?.id || req.user?.sub;
-    return this.destinationsService.remove(id, clerkId);
+    return this.connectionsService.remove(id, clerkId);
   }
 }

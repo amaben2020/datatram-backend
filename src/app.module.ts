@@ -15,6 +15,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { WebhookModule } from './webhooks/webhook.module';
 import { UsersModule } from './users/users.module';
+import { ConnectionsModule } from './connections/connections.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { UsersModule } from './users/users.module';
     DestinationsModule,
     WebhookModule,
     UsersModule,
+    ConnectionsModule,
   ],
   controllers: [AppController],
   providers: [
