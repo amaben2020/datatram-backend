@@ -27,8 +27,6 @@ export class WebhookController {
       const webhookSecret =
         this.configService.get<string>('CLERK_WEBHOOK_SECRET') || '';
 
-      console.log('webhookSecret', webhookSecret);
-
       if (!webhookSecret) {
         throw new BadRequestException('Missing webhook secret');
       }
@@ -48,13 +46,8 @@ export class WebhookController {
         throw new BadRequestException('Invalid webhook signature');
       }
 
-      // Handle different event types
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { type, data } = evt;
-
-      console.log('DATA FROM CLERK WEBHOOK', data);
-      console.log(type);
-
-      console.log('Full webhook data:', JSON.stringify(data, null, 2));
 
       switch (type) {
         case 'user.created':
@@ -74,13 +67,23 @@ export class WebhookController {
 
       return { success: true };
     } catch (err) {
-      console.error('Webhook processing error:', {
-        error: err.message,
-        stack: err.stack,
-        body: JSON.stringify(body, null, 2),
-      });
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      if (err instanceof Error) {
+        console.error('Webhook processing error:', {
+          error: err.message,
+          stack: err.stack,
+          body: JSON.stringify(body, null, 2),
+        });
+      } else {
+        console.error('Webhook processing error:', {
+          error: errorMessage,
+          body: JSON.stringify(body, null, 2),
+        });
+      }
+
       throw new BadRequestException(
-        `Webhook processing failed: ${err.message}`,
+        `Webhook processing failed: ${errorMessage}`,
       );
     }
   }
