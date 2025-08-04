@@ -7,10 +7,14 @@ import {
 } from '@nestjs/common';
 import { Webhook } from 'svix';
 import { ClerkWebhookService } from './clerk-webhook.service';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('webhooks')
 export class WebhookController {
-  constructor(private readonly clerkWebHookService: ClerkWebhookService) {}
+  constructor(
+    private readonly clerkWebHookService: ClerkWebhookService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('clerk')
   async handleClerkWebhook(
@@ -19,9 +23,8 @@ export class WebhookController {
     @Headers('svix-timestamp') svixTimestamp: string,
     @Headers('svix-signature') svixSignature: string,
   ) {
-    // Get your webhook secret from Clerk Dashboard
-    // const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
-    const webhookSecret = 'whsec_fEOn0Z0MVm3XhJ+9umHJwe4vRN+BRJV8';
+    const webhookSecret =
+      this.configService.get<string>('CLERK_WEBHOOK_SECRET') || '';
 
     if (!webhookSecret) {
       throw new BadRequestException('Missing webhook secret');
