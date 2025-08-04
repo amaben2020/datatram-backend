@@ -1,0 +1,1 @@
+ALTER TABLE "destinations" ADD COLUMN "url" varchar(1000) DEFAULT '';

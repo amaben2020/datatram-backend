@@ -53,6 +53,7 @@ export const destinations = pgTable('destinations', {
   updatedAt: timestamp('updated_at').defaultNow(),
   metadata: jsonb('metadata').default({}),
   userId: integer('user_id').references(() => users.id),
+  url: varchar('url', { length: 1000 }).default(''),
 });
 
 export const connections = pgTable('connections', {
