@@ -15,6 +15,13 @@
       "when": 1754241085968,
       "tag": "0001_daily_stryfe",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754297203857,
+      "tag": "0002_strange_shape",
+      "breakpoints": true
     }
   ]
 }

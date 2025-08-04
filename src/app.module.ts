@@ -10,11 +10,21 @@ import { ClerkService } from './common/auth/clerk/clerk.service';
 import { DrizzlePostgresModule } from '@knaadh/nestjs-drizzle-postgres';
 import { schema } from './db/schema';
 import { SourcesModule } from './sources/sources.module';
+import { DestinationsModule } from './destinations/destinations.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { WebhookModule } from './webhooks/webhook.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
     }),
     DrizzlePostgresModule.register({
       tag: 'DB_DEV',
@@ -24,6 +34,9 @@ import { SourcesModule } from './sources/sources.module';
       config: { schema: { ...schema } },
     }),
     SourcesModule,
+    DestinationsModule,
+    WebhookModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

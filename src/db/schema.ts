@@ -20,9 +20,15 @@ export const sourceTypeEnum = pgEnum('source_type', [
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
+  clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
   name: varchar('name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull(),
+  firstName: varchar('first_name', { length: 255 }),
+  lastName: varchar('last_name', { length: 255 }),
+  username: varchar('username', { length: 255 }),
+  imageUrl: varchar('image_url', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const sources = pgTable('sources', {
