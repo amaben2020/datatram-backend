@@ -57,3 +57,45 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 uploads/
 *.csv
+
+
+
+# BFG Repo Cleaner reports
+..bfg-report/
+*.bfg-report/
+bfg-report/
+
+# Credentials and sensitive files
+creds/
+credentials/
+*.creds
+*.credentials
+
+ 
+
+# Service account files
+service-account.json
+google-credentials.json
+gcp-credentials.json
+
+# Key files
+*.key
+*.pem
+*.cert
+*.crt
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
