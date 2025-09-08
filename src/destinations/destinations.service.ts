@@ -209,28 +209,50 @@ export class DestinationsService {
     // Handle BigQuery specific configuration
     let serviceKeyJson: any = null;
 
+    // if (createDestinationDto.type === 'bigquery') {
+    //   try {
+    //     // Read the service account credentials from the server-side file
+    //     const credentialsPath =
+    //       '/Users/uzochukwuamara/Code/DataTram/backend/datatram-server/credentials.json';
+
+    //     if (fs.existsSync(credentialsPath)) {
+    //       const credentialsData = fs.readFileSync(credentialsPath, 'utf8');
+    //       serviceKeyJson = JSON.parse(credentialsData);
+
+    //       // You can also validate the credentials here if needed
+    //       console.log('Loaded service account credentials for BigQuery');
+    //     } else {
+    //       console.warn(
+    //         'BigQuery credentials file not found at:',
+    //         credentialsPath,
+    //       );
+    //       throw new Error('BigQuery credentials not configured on server');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error loading BigQuery credentials:', error);
+    //     throw new Error('Failed to load BigQuery credentials');
+    //   }
+    // }
+
     if (createDestinationDto.type === 'bigquery') {
       try {
-        // Read the service account credentials from the server-side file
-        const credentialsPath =
-          '/Users/uzochukwuamara/Code/DataTram/backend/datatram-server/credentials.json';
+        const credentialsJson = process.env.GCP_CREDENTIALS_JSON;
 
-        if (fs.existsSync(credentialsPath)) {
-          const credentialsData = fs.readFileSync(credentialsPath, 'utf8');
-          serviceKeyJson = JSON.parse(credentialsData);
-
-          // You can also validate the credentials here if needed
-          console.log('Loaded service account credentials for BigQuery');
-        } else {
-          console.warn(
-            'BigQuery credentials file not found at:',
-            credentialsPath,
+        if (!credentialsJson) {
+          throw new Error(
+            'GCP_CREDENTIALS_JSON environment variable is not set',
           );
-          throw new Error('BigQuery credentials not configured on server');
         }
+
+        serviceKeyJson = JSON.parse(credentialsJson);
+        console.log(
+          'Loaded service account credentials from environment variable',
+        );
       } catch (error) {
-        console.error('Error loading BigQuery credentials:', error);
-        throw new Error('Failed to load BigQuery credentials');
+        console.error('Error parsing GCP credentials:', error);
+        throw new Error(
+          'Failed to parse BigQuery credentials from environment variable',
+        );
       }
     }
 
@@ -241,11 +263,7 @@ export class DestinationsService {
       .values({
         ...createDestinationDto,
         image: imageUrl,
-        serviceKeyJson: serviceKeyJson, // Store the parsed JSON
-        // Ensure required BigQuery fields are present
-        // datasetId: createDestinationDto.datasetId || null,
-        // targetTableName: createDestinationDto.targetTableName || null,
-        // userId,
+        serviceKeyJson: serviceKeyJson,
       })
       .returning();
 
