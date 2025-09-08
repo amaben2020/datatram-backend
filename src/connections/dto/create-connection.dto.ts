@@ -11,6 +11,16 @@ export class CreateConnectionDto {
   destinationId: number;
 }
 
+export class CreateBigQueryConnectionDto {
+  @IsNotEmpty()
+  @IsNumber()
+  connectionId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  destinationId: number;
+}
+
 export class UpdateConnectionDto {
   @IsOptional()
   @IsNumber()

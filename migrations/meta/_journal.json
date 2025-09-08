@@ -29,6 +29,27 @@
       "when": 1754332593152,
       "tag": "0003_overrated_rafael_vega",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757345390267,
+      "tag": "0004_easy_zuras",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1757346190995,
+      "tag": "0005_colossal_justin_hammer",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757351376825,
+      "tag": "0006_sweet_blob",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ import { join } from 'path';
 import { WebhookModule } from './webhooks/webhook.module';
 import { UsersModule } from './users/users.module';
 import { ConnectionsModule } from './connections/connections.module';
+import { ConnectionHistoriesModule } from './connection-histories/connection-histories.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ConnectionsModule } from './connections/connections.module';
     WebhookModule,
     UsersModule,
     ConnectionsModule,
+    ConnectionHistoriesModule,
   ],
   controllers: [AppController],
   providers: [

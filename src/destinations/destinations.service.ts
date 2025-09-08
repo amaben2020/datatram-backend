@@ -110,6 +110,8 @@
 
 //@ts-nocheck
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+import * as fs from 'fs';
+import * as path from 'path';
 import { InjectDrizzle } from '@knaadh/nestjs-drizzle-postgres';
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
@@ -138,22 +140,19 @@ export class DestinationsService {
 
   async findAll(clerkId: string) {
     console.log('USER ID', clerkId);
-    const userId = await this.getUserByUserId(clerkId);
+    // const userId = await this.getUserByUserId(clerkId);
 
-    console.log('USER ID FIND ALL', userId);
+    // console.log('USER ID FIND ALL', userId);
 
-    if (!userId) throw NotFoundError('User not found');
+    // if (!userId) throw NotFoundError('User not found');
 
-    const destinationsData = await this.db
-      .select()
-      .from(destinations)
-      .where(eq(destinations.userId, Number(userId)));
+    const destinationsData = await this.db.select().from(destinations);
+    // .where(eq(destinations.userId, Number(userId)));
 
     return destinationsData;
   }
 
-  async findOne(id: number, clerkId: string) {
-    const userId = await this.getUserByUserId(clerkId);
+  async findOne(id: number) {
     // TODO: Use join to restrict to only user id for specific user
     const [destination] = await this.db
       .select()
@@ -168,9 +167,36 @@ export class DestinationsService {
     return destination;
   }
 
+  // async create(
+  //   createDestinationDto: CreateDestinationDto,
+  //   // clerkId: string,
+  //   image?: Express.Multer.File,
+  // ) {
+  //   let imageUrl: string | undefined;
+
+  //   console.log('IMAGE', image);
+  //   if (image) {
+  //     imageUrl = await this.storageService.storeFile(image);
+  //   }
+
+  //   // const userId = await this.getUserByUserId(clerkId);
+
+  //   // console.log('imageUrl', imageUrl);
+
+  //   const [destination] = await this.db
+  //     .insert(destinations)
+  //     .values({
+  //       ...createDestinationDto,
+  //       image: imageUrl,
+  //       // userId,
+  //     })
+  //     .returning();
+
+  //   return destination;
+  // }
+
   async create(
     createDestinationDto: CreateDestinationDto,
-    clerkId: string,
     image?: Express.Multer.File,
   ) {
     let imageUrl: string | undefined;
@@ -180,16 +206,46 @@ export class DestinationsService {
       imageUrl = await this.storageService.storeFile(image);
     }
 
-    const userId = await this.getUserByUserId(clerkId);
+    // Handle BigQuery specific configuration
+    let serviceKeyJson: any = null;
 
-    console.log('imageUrl', imageUrl);
+    if (createDestinationDto.type === 'bigquery') {
+      try {
+        // Read the service account credentials from the server-side file
+        const credentialsPath =
+          '/Users/uzochukwuamara/Code/DataTram/backend/datatram-server/credentials.json';
+
+        if (fs.existsSync(credentialsPath)) {
+          const credentialsData = fs.readFileSync(credentialsPath, 'utf8');
+          serviceKeyJson = JSON.parse(credentialsData);
+
+          // You can also validate the credentials here if needed
+          console.log('Loaded service account credentials for BigQuery');
+        } else {
+          console.warn(
+            'BigQuery credentials file not found at:',
+            credentialsPath,
+          );
+          throw new Error('BigQuery credentials not configured on server');
+        }
+      } catch (error) {
+        console.error('Error loading BigQuery credentials:', error);
+        throw new Error('Failed to load BigQuery credentials');
+      }
+    }
+
+    console.log('serviceKeyJson', serviceKeyJson);
 
     const [destination] = await this.db
       .insert(destinations)
       .values({
         ...createDestinationDto,
         image: imageUrl,
-        userId,
+        serviceKeyJson: serviceKeyJson, // Store the parsed JSON
+        // Ensure required BigQuery fields are present
+        // datasetId: createDestinationDto.datasetId || null,
+        // targetTableName: createDestinationDto.targetTableName || null,
+        // userId,
       })
       .returning();
 
@@ -199,10 +255,10 @@ export class DestinationsService {
   async update(
     id: number,
     updateDestinationDto: UpdateDestinationDto,
-    clerkId: string,
+    // clerkId: string,
     image?: Express.Multer.File,
   ) {
-    const existing = await this.findOne(id, clerkId);
+    const existing = await this.findOne(id);
 
     console.log('existing', existing);
 
@@ -222,16 +278,14 @@ export class DestinationsService {
         image: imageUrl,
         updatedAt: new Date(),
       })
-      .where(
-        and(eq(destinations.id, id), eq(destinations.userId, existing?.userId)),
-      )
+      .where(and(eq(destinations.id, id)))
       .returning();
 
     return destination;
   }
 
-  async remove(id: number, clerkId: string) {
-    const existing = await this.findOne(id, clerkId);
+  async remove(id: number) {
+    const existing = await this.findOne(id);
 
     if (existing.image) {
       this.storageService.deleteFile(existing.image);

@@ -35,12 +35,12 @@ export class DestinationsController {
 
   @Get('/all')
   async findAll(@Request() req: any) {
-    const clerkId = req.user?.id || req.user?.sub;
+    // const clerkId = req.user?.id || req.user?.sub;
 
-    console.log(clerkId);
+    // console.log(clerkId);
 
     try {
-      const data = await this.destinationsService.findAll(clerkId);
+      const data = await this.destinationsService.findAll();
 
       console.log('CALLED ===>', data);
 
@@ -52,12 +52,13 @@ export class DestinationsController {
 
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    const userId = req.user?.id || req.user?.sub;
-    console.log('userId', userId);
-    return this.destinationsService.findOne(id, userId);
+    // const userId = req.user?.id || req.user?.sub;
+    // console.log('userId', userId);
+    // return this.destinationsService.findOne(id, userId);
+    return this.destinationsService.findOne(id);
   }
 
-  @UseGuards(ClerkAuthGuard)
+  // @UseGuards(ClerkAuthGuard)
   @Post()
   @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
   async create(
@@ -66,23 +67,23 @@ export class DestinationsController {
     files: { image?: Express.Multer.File[] },
     @Request() req: any,
   ) {
-    console.log('req ====>', req?.user);
+    // console.log('req ====>', req?.user);
     console.log('FILES RECEIVED ===>', files);
 
     // Extract individual files from the arrays
     const imageUpload = files?.image?.[0];
 
-    console.log('IMAGE ===>', imageUpload?.originalname, imageUpload?.mimetype);
+    // console.log('IMAGE ===>', imageUpload?.originalname, imageUpload?.mimetype);
 
-    const userId = req.user?.id || req.user?.sub;
+    // const userId = req.user?.id || req.user?.sub;
 
-    if (!userId) {
-      throw new BadRequestException('User authentication required');
-    }
+    // if (!userId) {
+    //   throw new BadRequestException('User authentication required');
+    // }
 
     return this.destinationsService.create(
       createDestinationDto,
-      userId,
+      // userId,
       imageUpload,
     );
   }
