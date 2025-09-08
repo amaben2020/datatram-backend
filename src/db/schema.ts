@@ -79,7 +79,10 @@ export const destinations = pgTable('destinations', {
 
 export const connectionHistories = pgTable('connection_histories', {
   id: serial('id').primaryKey(),
-  // Link to the destination that was used for this connection
+  // Link to the connection that was used for this history
+  connectionId: integer('connection_id').references(() => connections.id),
+  // Keep these for easier querying without joins
+  sourceId: integer('source_id').references(() => sources.id),
   destinationId: integer('destination_id').references(() => destinations.id),
   // Timestamp of the attempt
   attemptedAt: timestamp('attempted_at').defaultNow(),

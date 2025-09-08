@@ -25,12 +25,16 @@ import {
 import { ClerkAuthGuard } from 'src/common/auth/clerk-auth.guard';
 import axios from 'axios';
 import { promises as fs } from 'fs';
+import { ConnectionHistoriesService } from 'src/connection-histories/connection-histories.service';
 
 @UseInterceptors(LoggingInterceptor, ResponseWrapperInterceptor)
 @UseGuards(ClerkAuthGuard)
 @Controller('connections')
 export class ConnectionsController {
-  constructor(private readonly connectionsService: ConnectionsService) {}
+  constructor(
+    private readonly connectionsService: ConnectionsService,
+    private readonly connectionHistoriesService: ConnectionHistoriesService,
+  ) {}
 
   @Get('/all')
   async findAll(@Request() req: any) {
@@ -79,38 +83,7 @@ export class ConnectionsController {
     return this.connectionsService.create(createConnectionDto, userId);
   }
 
-  // @UseGuards(ClerkAuthGuard)
-  // @Post('connect-to-bigquery')
-  // async connectToBigQuery(
-  //   @Body() createConnectionDto: CreateBigQueryConnectionDto,
-  //   @Request() req: any,
-  // ) {
-  //   // console.log('req ====>', req?.user);
-  //   // console.log('CREATE CONNECTION DTO ===>', createConnectionDto);
-  //   const userId = req.user?.id || req.user?.sub;
-
-  //   if (!userId) {
-  //     throw new BadRequestException('User authentication required');
-  //   }
-
-  //   const connectionData = await this.connectionsService.findOne(
-  //     createConnectionDto.connectionId,
-  //     createConnectionDto.destinationId,
-  //     userId,
-  //   );
-
-  //   console.log('connection', connectionData);
-
-  //   // return this.connectionsService.create(createConnectionDto, userId);
-  //   // get the source and destination data similar to the createConnextion
-  //   // const createConnection = await axios.post(
-  //   //   `https://datatram-844630248083.europe-west3.run.app/load_to_bigquery/?target_table_name=datatram-test-table&project_id=coastal-sunspot-463520-p4&dataset_id=databricks_dataset&service_account_content=${connectionData?.serviceJson}`,
-  //   // );
-  //   // stringify the pdf to match backend format
-  //   // make api call to linkBq
-  //   // store result in connection history
-  // }
-
+  @UseGuards(ClerkAuthGuard)
   @Post('connect-to-bigquery')
   async connectToBigQuery(
     @Body() createConnectionDto: CreateBigQueryConnectionDto,
@@ -122,8 +95,7 @@ export class ConnectionsController {
       throw new BadRequestException('User authentication required');
     }
 
-    let historyId = null;
-
+    let historyId: number | null = null;
     try {
       // Get connection data
       const connectionData = await this.connectionsService.findOne(
@@ -132,25 +104,23 @@ export class ConnectionsController {
         userId,
       );
 
+      console.log('connectionData ===>', connectionData);
+
       if (!connectionData) {
         throw new BadRequestException('Connection not found');
       }
 
-      console.log('connection', connectionData);
+      historyId = await this.connectionHistoriesService.createConnectionHistory(
+        createConnectionDto.connectionId,
+        'pending',
+        {
+          fileName: connectionData?.file,
+          startTime: new Date().toISOString(),
+          action: 'bigquery_upload',
+        },
+        userId,
+      );
 
-      // Create initial history record
-      // historyId = await this.createConnectionHistory(
-      //   connectionData.destinationId,
-      //   'pending',
-      //   {
-      //     fileName: connectionData.file,
-      //     startTime: new Date().toISOString(),
-      //   },
-      // );
-
-      console.log('connectionData', connectionData);
-
-      // Process file data based on file type
       let processedData: any[] = [];
       if (connectionData.file) {
         // Read the actual file content first
@@ -161,9 +131,6 @@ export class ConnectionsController {
           .split('.')
           .pop()
           ?.toLowerCase();
-
-        console.log('fileBuffer', fileBuffer);
-        console.log('fileExtension', fileBuffer);
 
         switch (fileExtension) {
           case 'pdf':
@@ -218,16 +185,19 @@ export class ConnectionsController {
       // Make the API call
       const response = await axios.post(apiUrl);
 
-      // Update connection history with success
-      // await this.updateConnectionHistory(historyId, 'success', {
-      //   fileName: connectionData.file,
-      //   rowsProcessed: processedData.length,
-      //   endTime: new Date().toISOString(),
-      //   bigQueryResponse: response.data,
-      // });
-
-      console.log('processedData', processedData.length);
-      console.log(' response.data', response.data);
+      await this.connectionHistoriesService.updateConnectionHistory(
+        historyId,
+        'success',
+        {
+          fileName: connectionData?.file,
+          rowsProcessed: processedData.length,
+          endTime: new Date().toISOString(),
+          action: 'bigquery_upload',
+          bigQueryResponse: response?.data,
+          duration: Date.now(),
+        },
+        userId,
+      );
 
       return {
         success: true,
@@ -239,14 +209,20 @@ export class ConnectionsController {
     } catch (error) {
       console.error('BigQuery connection error:', error);
 
-      // Update connection history with failure
-      // if (historyId) {
-      //   await this.updateConnectionHistory(historyId, 'failure', {
-      //     error: error.message,
-      //     errorStack: error.stack,
-      //     endTime: new Date().toISOString(),
-      //   });
-      // }
+      if (historyId) {
+        await this.connectionHistoriesService.updateConnectionHistory(
+          historyId,
+          'failure',
+          {
+            error: error.message,
+            errorStack: error.stack,
+            endTime: new Date().toISOString(),
+            action: 'bigquery_upload',
+            failureReason: error.response?.data || 'Unknown error',
+          },
+          userId,
+        );
+      }
 
       throw new BadRequestException(
         `Failed to connect to BigQuery: ${error.message}`,

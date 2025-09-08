@@ -4,6 +4,7 @@ import { ConnectionHistoriesService } from './connection-histories.service';
 
 @Module({
   controllers: [ConnectionHistoriesController],
-  providers: [ConnectionHistoriesService]
+  providers: [ConnectionHistoriesService],
+  exports: [ConnectionHistoriesService],
 })
 export class ConnectionHistoriesModule {}

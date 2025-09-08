@@ -50,6 +50,13 @@
       "when": 1757351376825,
       "tag": "0006_sweet_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757365733202,
+      "tag": "0007_dazzling_susan_delgado",
+      "breakpoints": true
     }
   ]
 }

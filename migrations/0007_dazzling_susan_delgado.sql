@@ -1,0 +1,4 @@
+ALTER TABLE "connection_histories" ADD COLUMN "connection_id" integer;--> statement-breakpoint
+ALTER TABLE "connection_histories" ADD COLUMN "source_id" integer;--> statement-breakpoint
+ALTER TABLE "connection_histories" ADD CONSTRAINT "connection_histories_connection_id_connections_id_fk" FOREIGN KEY ("connection_id") REFERENCES "public"."connections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "connection_histories" ADD CONSTRAINT "connection_histories_source_id_sources_id_fk" FOREIGN KEY ("source_id") REFERENCES "public"."sources"("id") ON DELETE no action ON UPDATE no action;
