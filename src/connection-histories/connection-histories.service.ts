@@ -89,6 +89,7 @@ export class ConnectionHistoriesService {
     return history.id;
   }
 
+  // Todo: filter by user and expand schema
   async get(clerkId: string): Promise<ConnectionHistory[]> {
     const user = await this.getUserByUserId(clerkId);
     console.log('user', user);
